@@ -19,12 +19,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static android.widget.Toast.makeText;
+import static java.lang.Boolean.TRUE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -129,14 +132,29 @@ public class MainActivity extends AppCompatActivity {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String datetext = date.format(formatter);
         String filename = "two_" + datetext + ".txt"; // timestamp YYYYMMDDhhmmss TXT for media scanner
+        File directory = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
 
-        File file = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), filename);
-        if (!file.mkdirs()) {
-            Log.e(LOG_TAG, "Directory not created");
-            Toast.makeText(this, "Directory not created", Toast.LENGTH_LONG).show();
-            return;
+        try {
+            if (!directory.isDirectory()){
+                if (!directory.mkdirs()) {
+                    Log.e(LOG_TAG, "Directory not created");
+                    Toast.makeText(this, "Directory not created", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+            File newFile = new File(directory.getAbsoluteFile() + File.separator + filename);
+            FileOutputStream fos = new FileOutputStream(newFile, TRUE); // append
+            PrintStream printStream = new PrintStream(fos);
+            printStream.print(message);
+            printStream.close();
+            fos.close();
+            Log.e(LOG_TAG, "Wrote to " + newFile.getAbsolutePath());
+
+
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Exception writing file", e);
+            Toast.makeText(this, "Exception writing file", Toast.LENGTH_SHORT).show();
         }
-
 
         Toast.makeText(this, "Written", Toast.LENGTH_LONG).show();
 
